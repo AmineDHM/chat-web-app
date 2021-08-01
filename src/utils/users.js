@@ -34,7 +34,8 @@ const deleteUser = (id) => {
 };
 
 const getUser = (id) => {
-  return users.find((user) => user.id === id);
+  const user = users.find((user) => user.id === id);
+  return !user ? { error: "Something went wrong !" } : { user };
 };
 
 const getUsersInRoom = (room) => {

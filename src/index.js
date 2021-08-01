@@ -1,4 +1,4 @@
-//require("dotenv").config();
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const path = require("path");
@@ -26,21 +26,17 @@ io.on("connection", (socket) => {
     if (error) {
       return callback(error);
     }
-
     socket.join(user.room);
-
     socket.emit(
       "message",
       generateMessage(`Welcome ${user.username} to ${user.room}`)
     );
-
     socket.broadcast
       .to(user.room)
       .emit(
         "message",
         generateMessage(`${user.username} has joined ${user.room} !`)
       );
-
     io.to(user.room).emit("roomData", {
       room: user.room,
       users: getUsersInRoom(user.room),
@@ -49,16 +45,17 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", (message, callback) => {
     const filter = new Filter();
-    const user = getUser(socket.id);
+    const { error, user } = getUser(socket.id);
+    if (error) return callback(error);
     if (filter.isProfane(message)) {
       return callback("Profanity is not allowed !");
     }
     io.to(user.room).emit("message", generateMessage(message, user.username));
     callback();
   });
-
   socket.on("location", (location, callback) => {
-    const user = getUser(socket.id);
+    const { error, user } = getUser(socket.id);
+    if (error) return callback(error);
     const googleMapURL = `https://google.com/maps?q=${location.latitude},${location.longitude}`;
     geocode(location, (locationName) => {
       io.to(user.room).emit(
@@ -71,7 +68,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const user = deleteUser(socket.id);
-
     if (user) {
       io.to(user.room).emit(
         "message",

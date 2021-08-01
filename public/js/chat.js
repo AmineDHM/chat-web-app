@@ -43,7 +43,6 @@ const autoscroll = () => {
 };
 
 socket.on("message", ({ message, createdAt, username = "System" }) => {
-  console.log(message);
   const html = Mustache.render(messageTemplate, {
     message,
     username,
@@ -69,18 +68,16 @@ socket.on(
 
 document.querySelector("#message-form").addEventListener("submit", (e) => {
   e.preventDefault();
-
   $messageFormButton.setAttribute("disabled", "disabled");
-
   const message = e.target.elements.message.value;
   socket.emit("sendMessage", message, (error) => {
     $messageFormButton.removeAttribute("disabled");
     $messageFormInput.value = "";
     $messageFormInput.focus();
     if (error) {
-      return console.log(error);
+      alert(error);
+      location.href = "/";
     }
-    console.log("message sent");
   });
 });
 
@@ -96,9 +93,12 @@ $sendLocationButton.addEventListener("click", (e) => {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       },
-      () => {
+      (error) => {
+        if (error) {
+          alert(error);
+          location.href = "/";
+        }
         $sendLocationButton.removeAttribute("disabled");
-        console.log("Location is shared");
       }
     );
   });
